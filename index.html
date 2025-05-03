@@ -179,15 +179,24 @@
 
     enviarBtn.addEventListener('click', () => {
       if (pedidos.length === 0) {
-        alert("No hay pedidos para enviar.");
-        return;
-      }
+      alert("No hay pedidos para enviar.");
+      return;
+  }
 
-      let resumen = "🧾 Pedido a cocina:\n";
-      pedidos.forEach((p, i) => {
-        resumen += `\n🍔 ${i + 1}. ${p.tamano} - ${p.tipo}\n`;
-        resumen += `   ❌ No lleva: ${p.ingredientes.length > 0 ? p.ingredientes.join(', ') : "ninguno"}\n`;
-      });
+  let resumen = "🧾 Pedido a cocina:\n";
+  pedidos.forEach((p, i) => {
+    resumen += `\n🍔 ${i + 1}. ${p.tamano} - ${p.tipo}\n`;
+    resumen += `   ❌ No lleva: ${p.ingredientes.length > 0 ? p.ingredientes.join(', ') : "ninguno"}\n`;
+  });
+
+  alert(resumen);
+
+  // 🔁 Reiniciar todo
+  pedidos = [];
+  mostrarPedidos();
+  formulario.reset();
+});
+
 
       alert(resumen);
       // Aquí puedes reemplazar alert() por lógica para enviar datos a la cocina
