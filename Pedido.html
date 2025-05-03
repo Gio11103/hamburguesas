@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedido de Hamburguesas</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 10px;
+      padding: 0;
+    }
+    h2 { margin-top: 30px; }
+    label { display: block; margin: 5px 0; }
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      background: #28a745;
+      color: white;
+      border-radius: 5px;
+    }
+    .pedido {
+      margin-top: 20px;
+      border-top: 1px solid #ccc;
+      padding-top: 10px;
+    }
+    .card {
+      background: #f9f9f9;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+    }
+    .card button {
+      background: #dc3545;
+      margin-right: 5px;
+    }
+    .edit {
+      background: #007bff;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Hamburguesas</h1>
+
+  <form id="formulario">
+    <h2>Tamaño</h2>
+    <label><input type="radio" name="tamano" value="125g" required> 125g</label>
+    <label><input type="radio" name="tamano" value="250g"> 250g</label>
+
+    <h2>Tipo</h2>
+    <select id="tipo" required>
+      <option value="">-- Selecciona --</option>
+      <option value="Tocino">Tocino</option>
+      <option value="Guacamole">Guacamole</option>
+      <option value="Queso">Queso</option>
+      <option value="Chistorra">Chistorra</option>
+      <option value="Piña">Piña</option>
+      <option value="La Tóxica">La Tóxica</option>
+    </select>
+
+    <h2>Ingredientes</h2>
+    <label><input type="checkbox" name="ingredientes" value="Mayonesa" checked> Mayonesa</label>
+    <label><input type="checkbox" name="ingredientes" value="Catsup" checked> Catsup</label>
+    <label><input type="checkbox" name="ingredientes" value="Mostaza" checked> Mostaza</label>
+    <label><input type="checkbox" name="ingredientes" value="Lechuga" checked> Lechuga</label>
+    <label><input type="checkbox" name="ingredientes" value="Jitomate" checked> Jitomate</label>
+    <label><input type="checkbox" name="ingredientes" value="Cebolla" checked> Cebolla</label>
+
+    <button type="submit">Agregar al pedido</button>
+  </form>
+
+  <div class="pedido">
+    <h2>Tu pedido</h2>
+    <div id="listaPedidos"></div>
+  </div>
+
+  <script>
+    const formulario = document.getElementById('formulario');
+    const listaPedidos = document.getElementById('listaPedidos');
+    let pedidos = [];
+
+    formulario.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(formulario);
+      const tamano = formData.get('tamano');
+      const tipo = document.getElementById('tipo').value;
+      const ingredientes = formData.getAll('ingredientes');
+
+      const nuevoPedido = {
+        tamano,
+        tipo,
+        ingredientes
+      };
+
+      pedidos.push(nuevoPedido);
+      mostrarPedidos();
+      formulario.reset();
+    });
+
+    function mostrarPedidos() {
+      listaPedidos.innerHTML = '';
+      pedidos.forEach((pedido, index) => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <strong>${pedido.tamano}</strong> - <em>${pedido.tipo}</em><br>
+          Ingredientes: ${pedido.ingredientes.join(', ')}<br>
+          <button onclick="editarPedido(${index})" class="edit">Editar</button>
+          <button onclick="eliminarPedido(${index})">Eliminar</button>
+        `;
+        listaPedidos.appendChild(div);
+      });
+    }
+
+    function eliminarPedido(index) {
+      if (confirm("¿Eliminar esta hamburguesa del pedido?")) {
+        pedidos.splice(index, 1);
+        mostrarPedidos();
+      }
+    }
+
+    function editarPedido(index) {
+      const pedido = pedidos[index];
+
+      // Llenar el formulario con los datos del pedido
+      document.querySelectorAll('input[name="tamano"]').forEach(r => {
+        r.checked = r.value === pedido.tamano;
+      });
+
+      document.getElementById('tipo').value = pedido.tipo;
+
+      document.querySelectorAll('input[name="ingredientes"]').forEach(c => {
+        c.checked = pedido.ingredientes.includes(c.value);
+      });
+
+      // Eliminar temporalmente el pedido para que se reemplace al volver a enviarlo
+      pedidos.splice(index, 1);
+      mostrarPedidos();
+    }
+  </script>
+
+</body>
+</html>
+
