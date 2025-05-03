@@ -2,174 +2,101 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pedidos Hamburguesas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedidos de Hamburguesas</title>
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      max-width: 500px;
-      margin: auto;
-    }
-    label, select, input, button {
-      display: block;
-      margin-top: 10px;
-      width: 100%;
-    }
-    .checkboxes label {
-      display: inline-block;
-      margin-right: 10px;
-    }
-    .pedido {
-      border-bottom: 1px solid #ccc;
-      margin: 10px 0;
-      padding: 5px 0;
-    }
+    body { font-family: Arial, sans-serif; margin: 10px; padding: 10px; max-width: 600px; margin: auto; }
+    .pedido { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+    button { margin-top: 5px; }
   </style>
 </head>
 <body>
+  <h2>Crear Pedido</h2>
+  <label for="tamano">Tamaño:</label>
+  <select id="tamano">
+    <option value="125g">125 g</option>
+    <option value="250g">250 g</option>
+  </select><br>
 
-  <h2>📋 Hacer Pedido</h2>
+  <label for="tipo">Tipo:</label>
+  <select id="tipo">
+    <option value="tocino">Tocino</option>
+    <option value="guacamole">Guacamole</option>
+    <option value="queso">Queso</option>
+    <option value="chistorra">Chistorra</option>
+    <option value="piña">Piña</option>
+    <option value="la toxica">La Tóxica</option>
+  </select><br>
 
-  <form id="formulario">
-    <label>Tamaño:
-      <select id="tamano">
-        <option value="125g">125g</option>
-        <option value="250g">250g</option>
-      </select>
-    </label>
+  <p>Selecciona los ingredientes que <strong>NO</strong> quieres:</p>
+  <label><input type="checkbox" value="mayonesa"> Mayonesa</label><br>
+  <label><input type="checkbox" value="catsup"> Catsup</label><br>
+  <label><input type="checkbox" value="mostaza"> Mostaza</label><br>
+  <label><input type="checkbox" value="lechuga"> Lechuga</label><br>
+  <label><input type="checkbox" value="jitomate"> Jitomate</label><br>
+  <label><input type="checkbox" value="cebolla"> Cebolla</label><br>
+  <label><input type="checkbox" id="conTodo"> Con todos los ingredientes</label><br><br>
 
-    <label>Tipo:
-      <select id="tipo">
-        <option value="Tocino">Tocino</option>
-        <option value="Guacamole">Guacamole</option>
-        <option value="Queso">Queso</option>
-        <option value="Chistorra">Chistorra</option>
-        <option value="Piña">Piña</option>
-        <option value="La Tóxica">La Tóxica</option>
-      </select>
-    </label>
-
-    <label>
-      <input type="checkbox" id="todosIngredientes" checked>
-      Con todos los ingredientes
-    </label>
-
-    <div id="sinIngredientes" class="checkboxes" style="display: none;">
-      <label><input type="checkbox" value="Mayonesa">Mayonesa</label>
-      <label><input type="checkbox" value="Catsup">Catsup</label>
-      <label><input type="checkbox" value="Mostaza">Mostaza</label>
-      <label><input type="checkbox" value="Lechuga">Lechuga</label>
-      <label><input type="checkbox" value="Jitomate">Jitomate</label>
-      <label><input type="checkbox" value="Cebolla">Cebolla</label>
-    </div>
-
-    <button type="submit">Agregar Hamburguesa</button>
-  </form>
-
-  <h3>🧾 Pedido Actual</h3>
+  <button onclick="agregarPedido()">Agregar al pedido</button>
+  <h2>Pedido Actual</h2>
   <div id="listaPedidos"></div>
-
-  <button id="enviarPedido">Enviar a cocina</button>
+  <button onclick="enviarPedido()">Enviar a cocina</button>
 
   <script>
-    const formulario = document.getElementById("formulario");
-    const tamano = document.getElementById("tamano");
-    const tipo = document.getElementById("tipo");
-    const sinIngredientes = document.getElementById("sinIngredientes");
-    const todosIngredientes = document.getElementById("todosIngredientes");
-    const listaPedidos = document.getElementById("listaPedidos");
-    const enviarBtn = document.getElementById("enviarPedido");
-
     let pedidos = [];
 
-    todosIngredientes.addEventListener("change", () => {
-      sinIngredientes.style.display = todosIngredientes.checked ? "none" : "block";
-    });
-
-    formulario.addEventListener("submit", (e) => {
-      e.preventDefault();
-
-      let sin = [];
-      if (!todosIngredientes.checked) {
-        sin = Array.from(sinIngredientes.querySelectorAll("input:checked"))
-                  .map(i => i.value);
-      }
-
-      pedidos.push({
-        tamano: tamano.value,
-        tipo: tipo.value,
-        ingredientes: sin
+    document.getElementById('conTodo').addEventListener('change', (e) => {
+      const checked = e.target.checked;
+      document.querySelectorAll('input[type=checkbox]').forEach(c => {
+        if (c.id !== 'conTodo') c.checked = !checked;
       });
-
-      mostrarPedidos();
-      formulario.reset();
-      todosIngredientes.checked = true;
-      sinIngredientes.style.display = "none";
     });
+
+    function agregarPedido() {
+      const tamano = document.getElementById('tamano').value;
+      const tipo = document.getElementById('tipo').value;
+      const sinIngredientes = Array.from(document.querySelectorAll('input[type=checkbox]:checked'))
+        .filter(i => i.id !== 'conTodo')
+        .map(i => i.value);
+
+      pedidos.push({ tamano, tipo, ingredientes: sinIngredientes });
+      mostrarPedidos();
+    }
+
+    function eliminarPedido(index) {
+      pedidos.splice(index, 1);
+      mostrarPedidos();
+    }
 
     function mostrarPedidos() {
-      listaPedidos.innerHTML = "";
+      const contenedor = document.getElementById('listaPedidos');
+      contenedor.innerHTML = '';
       pedidos.forEach((p, i) => {
-        const div = document.createElement("div");
-        div.classList.add("pedido");
-        div.innerHTML = `
-          <strong>${p.tamano} - ${p.tipo}</strong><br>
-          ${p.ingredientes.length > 0 
-            ? `Sin: ${p.ingredientes.join(", ")}`
-            : "Con todos los ingredientes"}
-          <br><button onclick="editar(${i})">Editar</button>
-          <button onclick="eliminar(${i})">Eliminar</button>
-        `;
-        listaPedidos.appendChild(div);
+        contenedor.innerHTML += `
+          <div class="pedido">
+            <strong>${p.tamano} - ${p.tipo}</strong><br>
+            Sin: ${p.ingredientes.join(', ') || 'Nada'}<br>
+            <button onclick="eliminarPedido(${i})">Quitar</button>
+          </div>`;
       });
     }
 
-    function editar(i) {
-      const p = pedidos[i];
-      tamano.value = p.tamano;
-      tipo.value = p.tipo;
-      todosIngredientes.checked = p.ingredientes.length === 0;
-      sinIngredientes.style.display = todosIngredientes.checked ? "none" : "block";
-      sinIngredientes.querySelectorAll("input").forEach(inp => {
-        inp.checked = p.ingredientes.includes(inp.value);
-      });
-      pedidos.splice(i, 1);
-      mostrarPedidos();
-    }
-
-    function eliminar(i) {
-      pedidos.splice(i, 1);
-      mostrarPedidos();
-    }
-
-    enviarBtn.addEventListener("click", () => {
-      if (pedidos.length === 0) {
-        alert("No hay pedidos para enviar.");
-        return;
-      }
-
-      fetch("guardar_pedido.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+    function enviarPedido() {
+      fetch('guardar_pedido.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(pedidos)
       })
-      .then(r => r.text())
-      .then(msg => {
-        alert("✅ Pedido enviado a cocina\n" + msg);
-        pedidos = [];
+      .then(response => response.text())
+      .then(data => {
+        alert(data);
+        pedidos = []; // Reinicia los pedidos al enviarse
         mostrarPedidos();
-        formulario.reset();
-        todosIngredientes.checked = true;
-        sinIngredientes.style.display = "none";
+        document.getElementById('conTodo').checked = false;
+        document.querySelectorAll('input[type=checkbox]').forEach(c => c.checked = false);
       })
-      .catch(err => {
-        alert("❌ Error al enviar pedido\n" + err);
-      });
-    });
+      .catch(error => alert('Error al enviar el pedido: ' + error));
+    }
   </script>
-
 </body>
 </html>
