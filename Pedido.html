@@ -1,58 +1,90 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pedido de Hamburguesas</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Pedidos de Hamburguesas</title>
   <style>
     body {
-      font-family: sans-serif;
-      margin: 10px;
-      padding: 0;
+      font-family: Arial, sans-serif;
+      padding: 16px;
+      margin: 0;
+      background: #fff;
     }
-    h2 { margin-top: 30px; }
-    label { display: block; margin: 5px 0; }
-    button {
-      margin-top: 10px;
+
+    h1, h2 {
+      font-size: 22px;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0;
+      font-size: 18px;
+    }
+
+    select, input[type="radio"], input[type="checkbox"] {
+      transform: scale(1.3);
+      margin-right: 8px;
+    }
+
+    select {
+      width: 100%;
       padding: 10px;
-      font-size: 16px;
-      border: none;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px;
+      font-size: 18px;
       background: #28a745;
       color: white;
-      border-radius: 5px;
+      border: none;
+      border-radius: 6px;
     }
-    .pedido {
-      margin-top: 20px;
-      border-top: 1px solid #ccc;
-      padding-top: 10px;
-    }
+
     .card {
-      background: #f9f9f9;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 5px;
+      background: #f0f0f0;
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
     }
+
     .card button {
-      background: #dc3545;
-      margin-right: 5px;
+      margin-top: 8px;
+      font-size: 16px;
+      width: 48%;
+      margin-right: 4%;
     }
-    .edit {
-      background: #007bff;
+
+    .edit { background: #007bff; }
+    .delete { background: #dc3545; }
+
+    .pedido {
+      margin-top: 30px;
+    }
+
+    #enviarBtn {
+      background: #ffc107;
+      color: #000;
     }
   </style>
 </head>
 <body>
 
-  <h1>Hamburguesas</h1>
+  <h1>Haz tu pedido 🍔</h1>
 
   <form id="formulario">
-    <h2>Tamaño</h2>
+    <h2>Selecciona el tamaño</h2>
     <label><input type="radio" name="tamano" value="125g" required> 125g</label>
     <label><input type="radio" name="tamano" value="250g"> 250g</label>
 
-    <h2>Tipo</h2>
+    <h2>Tipo de hamburguesa</h2>
     <select id="tipo" required>
-      <option value="">-- Selecciona --</option>
+      <option value="">-- Selecciona una opción --</option>
       <option value="Tocino">Tocino</option>
       <option value="Guacamole">Guacamole</option>
       <option value="Queso">Queso</option>
@@ -75,11 +107,14 @@
   <div class="pedido">
     <h2>Tu pedido</h2>
     <div id="listaPedidos"></div>
+
+    <button id="enviarBtn">Enviar a cocina</button>
   </div>
 
   <script>
     const formulario = document.getElementById('formulario');
     const listaPedidos = document.getElementById('listaPedidos');
+    const enviarBtn = document.getElementById('enviarBtn');
     let pedidos = [];
 
     formulario.addEventListener('submit', (e) => {
@@ -87,12 +122,15 @@
       const formData = new FormData(formulario);
       const tamano = formData.get('tamano');
       const tipo = document.getElementById('tipo').value;
-      const ingredientes = formData.getAll('ingredientes');
+
+      const todosLosIngredientes = ["Mayonesa", "Catsup", "Mostaza", "Lechuga", "Jitomate", "Cebolla"];
+      const ingredientesIncluidos = formData.getAll('ingredientes');
+      const ingredientesQuitados = todosLosIngredientes.filter(i => !ingredientesIncluidos.includes(i));
 
       const nuevoPedido = {
         tamano,
         tipo,
-        ingredientes
+        ingredientes: ingredientesQuitados
       };
 
       pedidos.push(nuevoPedido);
@@ -107,9 +145,9 @@
         div.className = 'card';
         div.innerHTML = `
           <strong>${pedido.tamano}</strong> - <em>${pedido.tipo}</em><br>
-          Ingredientes: ${pedido.ingredientes.join(', ')}<br>
+          No lleva: ${pedido.ingredientes.length > 0 ? pedido.ingredientes.join(', ') : "Ningún ingrediente removido"}<br><br>
           <button onclick="editarPedido(${index})" class="edit">Editar</button>
-          <button onclick="eliminarPedido(${index})">Eliminar</button>
+          <button onclick="eliminarPedido(${index})" class="delete">Eliminar</button>
         `;
         listaPedidos.appendChild(div);
       });
@@ -125,7 +163,6 @@
     function editarPedido(index) {
       const pedido = pedidos[index];
 
-      // Llenar el formulario con los datos del pedido
       document.querySelectorAll('input[name="tamano"]').forEach(r => {
         r.checked = r.value === pedido.tamano;
       });
@@ -133,15 +170,29 @@
       document.getElementById('tipo').value = pedido.tipo;
 
       document.querySelectorAll('input[name="ingredientes"]').forEach(c => {
-        c.checked = pedido.ingredientes.includes(c.value);
+        c.checked = !pedido.ingredientes.includes(c.value);
       });
 
-      // Eliminar temporalmente el pedido para que se reemplace al volver a enviarlo
       pedidos.splice(index, 1);
       mostrarPedidos();
     }
+
+    enviarBtn.addEventListener('click', () => {
+      if (pedidos.length === 0) {
+        alert("No hay pedidos para enviar.");
+        return;
+      }
+
+      let resumen = "🧾 Pedido a cocina:\n";
+      pedidos.forEach((p, i) => {
+        resumen += `\n🍔 ${i + 1}. ${p.tamano} - ${p.tipo}\n`;
+        resumen += `   ❌ No lleva: ${p.ingredientes.length > 0 ? p.ingredientes.join(', ') : "ninguno"}\n`;
+      });
+
+      alert(resumen);
+      // Aquí puedes reemplazar alert() por lógica para enviar datos a la cocina
+    });
   </script>
 
 </body>
 </html>
-
