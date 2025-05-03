@@ -2,89 +2,59 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Pedidos de Hamburguesas</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 16px;
-      margin: 0;
-      background: #fff;
+      font-family: sans-serif;
+      padding: 1rem;
+      max-width: 500px;
+      margin: auto;
     }
 
-    h1, h2 {
-      font-size: 22px;
+    h2 {
+      margin-top: 2rem;
     }
 
     label {
       display: block;
-      margin: 10px 0;
-      font-size: 18px;
+      margin-bottom: 0.5rem;
     }
 
-    select, input[type="radio"], input[type="checkbox"] {
-      transform: scale(1.3);
-      margin-right: 8px;
+    .ingrediente {
+      margin-right: 0.5rem;
     }
 
-    select {
-      width: 100%;
-      padding: 10px;
-      font-size: 18px;
-      margin-top: 10px;
+    .pedido {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      border-radius: 5px;
     }
 
     button {
-      display: block;
+      margin-top: 1rem;
+      padding: 0.5rem;
       width: 100%;
-      margin-top: 20px;
-      padding: 14px;
-      font-size: 18px;
-      background: #28a745;
-      color: white;
-      border: none;
-      border-radius: 6px;
     }
 
-    .card {
-      background: #f0f0f0;
-      margin-top: 16px;
-      padding: 12px;
-      border-radius: 8px;
-    }
-
-    .card button {
-      margin-top: 8px;
-      font-size: 16px;
-      width: 48%;
-      margin-right: 4%;
-    }
-
-    .edit { background: #007bff; }
-    .delete { background: #dc3545; }
-
-    .pedido {
-      margin-top: 30px;
-    }
-
-    #enviarBtn {
-      background: #ffc107;
-      color: #000;
+    .btn-small {
+      font-size: 0.8rem;
+      margin: 0.25rem;
     }
   </style>
 </head>
 <body>
-
-  <h1>Haz tu pedido 🍔</h1>
+  <h1>🍔 Tomar Pedido</h1>
 
   <form id="formulario">
-    <h2>Selecciona el tamaño</h2>
-    <label><input type="radio" name="tamano" value="125g" required> 125g</label>
-    <label><input type="radio" name="tamano" value="250g"> 250g</label>
+    <h2>Tamaño</h2>
+    <label><input type="radio" name="tamano" value="125 g" /> 125 g</label>
+    <label><input type="radio" name="tamano" value="250 g" /> 250 g</label>
 
-    <h2>Tipo de hamburguesa</h2>
+    <h2>Tipo</h2>
     <select id="tipo" required>
-      <option value="">-- Selecciona una opción --</option>
+      <option value="">-- Selecciona una --</option>
       <option value="Tocino">Tocino</option>
       <option value="Guacamole">Guacamole</option>
       <option value="Queso">Queso</option>
@@ -93,115 +63,110 @@
       <option value="La Tóxica">La Tóxica</option>
     </select>
 
-    <h2>Ingredientes</h2>
-    <label><input type="checkbox" name="ingredientes" value="Mayonesa" checked> Mayonesa</label>
-    <label><input type="checkbox" name="ingredientes" value="Catsup" checked> Catsup</label>
-    <label><input type="checkbox" name="ingredientes" value="Mostaza" checked> Mostaza</label>
-    <label><input type="checkbox" name="ingredientes" value="Lechuga" checked> Lechuga</label>
-    <label><input type="checkbox" name="ingredientes" value="Jitomate" checked> Jitomate</label>
-    <label><input type="checkbox" name="ingredientes" value="Cebolla" checked> Cebolla</label>
+    <h2>Ingredientes que NO lleva</h2>
+    <label><input type="checkbox" class="ingrediente" value="Mayonesa" /> Mayonesa</label>
+    <label><input type="checkbox" class="ingrediente" value="Catsup" /> Catsup</label>
+    <label><input type="checkbox" class="ingrediente" value="Mostaza" /> Mostaza</label>
+    <label><input type="checkbox" class="ingrediente" value="Lechuga" /> Lechuga</label>
+    <label><input type="checkbox" class="ingrediente" value="Jitomate" /> Jitomate</label>
+    <label><input type="checkbox" class="ingrediente" value="Cebolla" /> Cebolla</label>
 
     <button type="submit">Agregar al pedido</button>
   </form>
 
-  <div class="pedido">
-    <h2>Tu pedido</h2>
-    <div id="listaPedidos"></div>
+  <h2>🧾 Pedido actual</h2>
+  <div id="lista-pedidos"></div>
 
-    <button id="enviarBtn">Enviar a cocina</button>
-  </div>
+  <button id="enviar">Enviar a cocina</button>
 
   <script>
-    const formulario = document.getElementById('formulario');
-    const listaPedidos = document.getElementById('listaPedidos');
-    const enviarBtn = document.getElementById('enviarBtn');
+    const formulario = document.getElementById("formulario");
+    const listaPedidos = document.getElementById("lista-pedidos");
+    const enviarBtn = document.getElementById("enviar");
+
     let pedidos = [];
+    let pedidoEditando = null;
 
     formulario.addEventListener('submit', (e) => {
       e.preventDefault();
-      const formData = new FormData(formulario);
-      const tamano = formData.get('tamano');
-      const tipo = document.getElementById('tipo').value;
 
-      const todosLosIngredientes = ["Mayonesa", "Catsup", "Mostaza", "Lechuga", "Jitomate", "Cebolla"];
-      const ingredientesIncluidos = formData.getAll('ingredientes');
-      const ingredientesQuitados = todosLosIngredientes.filter(i => !ingredientesIncluidos.includes(i));
+      const tamano = document.querySelector('input[name="tamano"]:checked');
+      const tipo = document.getElementById('tipo').value;
+      const noIngredientes = [];
+      document.querySelectorAll('.ingrediente').forEach(input => {
+        if (input.checked) noIngredientes.push(input.value);
+      });
+
+      if (!tamano || !tipo) {
+        alert("Por favor selecciona tamaño y tipo.");
+        return;
+      }
 
       const nuevoPedido = {
-        tamano,
+        tamano: tamano.value,
         tipo,
-        ingredientes: ingredientesQuitados
+        ingredientes: noIngredientes
       };
 
-      pedidos.push(nuevoPedido);
+      if (pedidoEditando !== null) {
+        pedidos[pedidoEditando] = nuevoPedido;
+        pedidoEditando = null;
+      } else {
+        pedidos.push(nuevoPedido);
+      }
+
       mostrarPedidos();
-      formulario.reset();
     });
 
     function mostrarPedidos() {
-      listaPedidos.innerHTML = '';
-      pedidos.forEach((pedido, index) => {
-        const div = document.createElement('div');
-        div.className = 'card';
+      listaPedidos.innerHTML = "";
+      pedidos.forEach((p, i) => {
+        const div = document.createElement("div");
+        div.className = "pedido";
         div.innerHTML = `
-          <strong>${pedido.tamano}</strong> - <em>${pedido.tipo}</em><br>
-          No lleva: ${pedido.ingredientes.length > 0 ? pedido.ingredientes.join(', ') : "Ningún ingrediente removido"}<br><br>
-          <button onclick="editarPedido(${index})" class="edit">Editar</button>
-          <button onclick="eliminarPedido(${index})" class="delete">Eliminar</button>
+          <strong>${p.tamano} - ${p.tipo}</strong><br>
+          ❌ No lleva: ${p.ingredientes.length ? p.ingredientes.join(', ') : 'ninguno'}<br>
+          <button class="btn-small" onclick="editarPedido(${i})">Editar</button>
+          <button class="btn-small" onclick="eliminarPedido(${i})">Eliminar</button>
         `;
         listaPedidos.appendChild(div);
       });
     }
 
-    function eliminarPedido(index) {
-      if (confirm("¿Eliminar esta hamburguesa del pedido?")) {
-        pedidos.splice(index, 1);
-        mostrarPedidos();
-      }
+    function editarPedido(index) {
+      const p = pedidos[index];
+      document.querySelector(`input[name="tamano"][value="${p.tamano}"]`).checked = true;
+      document.getElementById("tipo").value = p.tipo;
+      document.querySelectorAll('.ingrediente').forEach(input => {
+        input.checked = !p.ingredientes.includes(input.value);
+      });
+      pedidoEditando = index;
     }
 
-    function editarPedido(index) {
-      const pedido = pedidos[index];
-
-      document.querySelectorAll('input[name="tamano"]').forEach(r => {
-        r.checked = r.value === pedido.tamano;
-      });
-
-      document.getElementById('tipo').value = pedido.tipo;
-
-      document.querySelectorAll('input[name="ingredientes"]').forEach(c => {
-        c.checked = !pedido.ingredientes.includes(c.value);
-      });
-
+    function eliminarPedido(index) {
       pedidos.splice(index, 1);
       mostrarPedidos();
     }
 
     enviarBtn.addEventListener('click', () => {
       if (pedidos.length === 0) {
-      alert("No hay pedidos para enviar.");
-      return;
-  }
+        alert("No hay pedidos para enviar.");
+        return;
+      }
 
-  let resumen = "🧾 Pedido a cocina:\n";
-  pedidos.forEach((p, i) => {
-    resumen += `\n🍔 ${i + 1}. ${p.tamano} - ${p.tipo}\n`;
-    resumen += `   ❌ No lleva: ${p.ingredientes.length > 0 ? p.ingredientes.join(', ') : "ninguno"}\n`;
-  });
-
-  alert(resumen);
-
-  // ✅ Reiniciar todo después de enviar
-  pedidos = [];
-  mostrarPedidos();
-});
-
-
+      let resumen = "🧾 Pedido a cocina:\n";
+      pedidos.forEach((p, i) => {
+        resumen += `\n🍔 ${i + 1}. ${p.tamano} - ${p.tipo}\n`;
+        resumen += `   ❌ No lleva: ${p.ingredientes.length ? p.ingredientes.join(', ') : "ninguno"}\n`;
+      });
 
       alert(resumen);
-      // Aquí puedes reemplazar alert() por lógica para enviar datos a la cocina
+
+      // Reiniciar después de enviar
+      pedidos = [];
+      mostrarPedidos();
+      formulario.reset();
     });
   </script>
-
 </body>
 </html>
