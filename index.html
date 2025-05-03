@@ -1,172 +1,175 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pedidos de Hamburguesas</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pedidos Hamburguesas</title>
   <style>
     body {
       font-family: sans-serif;
-      padding: 1rem;
+      padding: 20px;
       max-width: 500px;
       margin: auto;
     }
-
-    h2 {
-      margin-top: 2rem;
-    }
-
-    label {
+    label, select, input, button {
       display: block;
-      margin-bottom: 0.5rem;
-    }
-
-    .ingrediente {
-      margin-right: 0.5rem;
-    }
-
-    .pedido {
-      border: 1px solid #ccc;
-      padding: 0.5rem;
-      margin-top: 0.5rem;
-      border-radius: 5px;
-    }
-
-    button {
-      margin-top: 1rem;
-      padding: 0.5rem;
+      margin-top: 10px;
       width: 100%;
     }
-
-    .btn-small {
-      font-size: 0.8rem;
-      margin: 0.25rem;
+    .checkboxes label {
+      display: inline-block;
+      margin-right: 10px;
+    }
+    .pedido {
+      border-bottom: 1px solid #ccc;
+      margin: 10px 0;
+      padding: 5px 0;
     }
   </style>
 </head>
 <body>
-  <h1>🍔 Tomar Pedido</h1>
+
+  <h2>📋 Hacer Pedido</h2>
 
   <form id="formulario">
-    <h2>Tamaño</h2>
-    <label><input type="radio" name="tamano" value="125 g" /> 125 g</label>
-    <label><input type="radio" name="tamano" value="250 g" /> 250 g</label>
+    <label>Tamaño:
+      <select id="tamano">
+        <option value="125g">125g</option>
+        <option value="250g">250g</option>
+      </select>
+    </label>
 
-    <h2>Tipo</h2>
-    <select id="tipo" required>
-      <option value="">-- Selecciona una --</option>
-      <option value="Tocino">Tocino</option>
-      <option value="Guacamole">Guacamole</option>
-      <option value="Queso">Queso</option>
-      <option value="Chistorra">Chistorra</option>
-      <option value="Piña">Piña</option>
-      <option value="La Tóxica">La Tóxica</option>
-    </select>
+    <label>Tipo:
+      <select id="tipo">
+        <option value="Tocino">Tocino</option>
+        <option value="Guacamole">Guacamole</option>
+        <option value="Queso">Queso</option>
+        <option value="Chistorra">Chistorra</option>
+        <option value="Piña">Piña</option>
+        <option value="La Tóxica">La Tóxica</option>
+      </select>
+    </label>
 
-    <h2>Ingredientes que NO lleva</h2>
-    <label><input type="checkbox" class="ingrediente" value="Mayonesa" /> Mayonesa</label>
-    <label><input type="checkbox" class="ingrediente" value="Catsup" /> Catsup</label>
-    <label><input type="checkbox" class="ingrediente" value="Mostaza" /> Mostaza</label>
-    <label><input type="checkbox" class="ingrediente" value="Lechuga" /> Lechuga</label>
-    <label><input type="checkbox" class="ingrediente" value="Jitomate" /> Jitomate</label>
-    <label><input type="checkbox" class="ingrediente" value="Cebolla" /> Cebolla</label>
+    <label>
+      <input type="checkbox" id="todosIngredientes" checked>
+      Con todos los ingredientes
+    </label>
 
-    <button type="submit">Agregar al pedido</button>
+    <div id="sinIngredientes" class="checkboxes" style="display: none;">
+      <label><input type="checkbox" value="Mayonesa">Mayonesa</label>
+      <label><input type="checkbox" value="Catsup">Catsup</label>
+      <label><input type="checkbox" value="Mostaza">Mostaza</label>
+      <label><input type="checkbox" value="Lechuga">Lechuga</label>
+      <label><input type="checkbox" value="Jitomate">Jitomate</label>
+      <label><input type="checkbox" value="Cebolla">Cebolla</label>
+    </div>
+
+    <button type="submit">Agregar Hamburguesa</button>
   </form>
 
-  <h2>🧾 Pedido actual</h2>
-  <div id="lista-pedidos"></div>
+  <h3>🧾 Pedido Actual</h3>
+  <div id="listaPedidos"></div>
 
-  <button id="enviar">Enviar a cocina</button>
+  <button id="enviarPedido">Enviar a cocina</button>
 
   <script>
     const formulario = document.getElementById("formulario");
-    const listaPedidos = document.getElementById("lista-pedidos");
-    const enviarBtn = document.getElementById("enviar");
+    const tamano = document.getElementById("tamano");
+    const tipo = document.getElementById("tipo");
+    const sinIngredientes = document.getElementById("sinIngredientes");
+    const todosIngredientes = document.getElementById("todosIngredientes");
+    const listaPedidos = document.getElementById("listaPedidos");
+    const enviarBtn = document.getElementById("enviarPedido");
 
     let pedidos = [];
-    let pedidoEditando = null;
 
-    formulario.addEventListener('submit', (e) => {
+    todosIngredientes.addEventListener("change", () => {
+      sinIngredientes.style.display = todosIngredientes.checked ? "none" : "block";
+    });
+
+    formulario.addEventListener("submit", (e) => {
       e.preventDefault();
 
-      const tamano = document.querySelector('input[name="tamano"]:checked');
-      const tipo = document.getElementById('tipo').value;
-      const noIngredientes = [];
-      document.querySelectorAll('.ingrediente').forEach(input => {
-        if (input.checked) noIngredientes.push(input.value);
+      let sin = [];
+      if (!todosIngredientes.checked) {
+        sin = Array.from(sinIngredientes.querySelectorAll("input:checked"))
+                  .map(i => i.value);
+      }
+
+      pedidos.push({
+        tamano: tamano.value,
+        tipo: tipo.value,
+        ingredientes: sin
       });
 
-      if (!tamano || !tipo) {
-        alert("Por favor selecciona tamaño y tipo.");
-        return;
-      }
-
-      const nuevoPedido = {
-        tamano: tamano.value,
-        tipo,
-        ingredientes: noIngredientes
-      };
-
-      if (pedidoEditando !== null) {
-        pedidos[pedidoEditando] = nuevoPedido;
-        pedidoEditando = null;
-      } else {
-        pedidos.push(nuevoPedido);
-      }
-
       mostrarPedidos();
+      formulario.reset();
+      todosIngredientes.checked = true;
+      sinIngredientes.style.display = "none";
     });
 
     function mostrarPedidos() {
       listaPedidos.innerHTML = "";
       pedidos.forEach((p, i) => {
         const div = document.createElement("div");
-        div.className = "pedido";
+        div.classList.add("pedido");
         div.innerHTML = `
           <strong>${p.tamano} - ${p.tipo}</strong><br>
-          ❌ No lleva: ${p.ingredientes.length ? p.ingredientes.join(', ') : 'ninguno'}<br>
-          <button class="btn-small" onclick="editarPedido(${i})">Editar</button>
-          <button class="btn-small" onclick="eliminarPedido(${i})">Eliminar</button>
+          ${p.ingredientes.length > 0 
+            ? `Sin: ${p.ingredientes.join(", ")}`
+            : "Con todos los ingredientes"}
+          <br><button onclick="editar(${i})">Editar</button>
+          <button onclick="eliminar(${i})">Eliminar</button>
         `;
         listaPedidos.appendChild(div);
       });
     }
 
-    function editarPedido(index) {
-      const p = pedidos[index];
-      document.querySelector(`input[name="tamano"][value="${p.tamano}"]`).checked = true;
-      document.getElementById("tipo").value = p.tipo;
-      document.querySelectorAll('.ingrediente').forEach(input => {
-        input.checked = !p.ingredientes.includes(input.value);
+    function editar(i) {
+      const p = pedidos[i];
+      tamano.value = p.tamano;
+      tipo.value = p.tipo;
+      todosIngredientes.checked = p.ingredientes.length === 0;
+      sinIngredientes.style.display = todosIngredientes.checked ? "none" : "block";
+      sinIngredientes.querySelectorAll("input").forEach(inp => {
+        inp.checked = p.ingredientes.includes(inp.value);
       });
-      pedidoEditando = index;
-    }
-
-    function eliminarPedido(index) {
-      pedidos.splice(index, 1);
+      pedidos.splice(i, 1);
       mostrarPedidos();
     }
 
-    enviarBtn.addEventListener('click', () => {
+    function eliminar(i) {
+      pedidos.splice(i, 1);
+      mostrarPedidos();
+    }
+
+    enviarBtn.addEventListener("click", () => {
       if (pedidos.length === 0) {
         alert("No hay pedidos para enviar.");
         return;
       }
 
-      let resumen = "🧾 Pedido a cocina:\n";
-      pedidos.forEach((p, i) => {
-        resumen += `\n🍔 ${i + 1}. ${p.tamano} - ${p.tipo}\n`;
-        resumen += `   ❌ No lleva: ${p.ingredientes.length ? p.ingredientes.join(', ') : "ninguno"}\n`;
+      fetch("guardar_pedido.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(pedidos)
+      })
+      .then(r => r.text())
+      .then(msg => {
+        alert("✅ Pedido enviado a cocina\n" + msg);
+        pedidos = [];
+        mostrarPedidos();
+        formulario.reset();
+        todosIngredientes.checked = true;
+        sinIngredientes.style.display = "none";
+      })
+      .catch(err => {
+        alert("❌ Error al enviar pedido\n" + err);
       });
-
-      alert(resumen);
-
-      // Reiniciar después de enviar
-      pedidos = [];
-      mostrarPedidos();
-      formulario.reset();
     });
   </script>
+
 </body>
 </html>
