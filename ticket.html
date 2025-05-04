@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ticket</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 1rem;
+    }
+    .item {
+      margin-bottom: 1rem;
+    }
+    .total {
+      font-weight: bold;
+      border-top: 1px dashed #000;
+      margin-top: 1rem;
+      padding-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h2>🧾 Ticket de Pedido</h2>
+  <div id="contenido"></div>
+  <button onclick="window.print()">Imprimir</button>
+
+  <script>
+  window.addEventListener("message", (e) => {
+    const datos = e.data.pedidos;
+    const cont = document.getElementById("contenido");
+    let total = 0;
+    datos.forEach(p => {
+      total += p.precio;
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <div><strong>${p.producto}</strong> - ${p.tipo} ${p.tamano}</div>
+        ${p.sabor ? `<div>Sabor: ${p.sabor}</div>` : ""}
+        ${p.ingredientes ? `<div>${p.ingredientes}</div>` : ""}
+        ${p.combo === "Sí" ? `<div>Combo incluido</div>` : ""}
+        ${p.quesoExtra === "Sí" ? `<div>+ Queso extra</div>` : ""}
+        ${p.ingredienteExtra ? `<div>+ Extra: ${p.ingredienteExtra}</div>` : ""}
+        <div>💵 $${p.precio}</div>
+      `;
+      cont.appendChild(div);
+    });
+    const t = document.createElement("div");
+    t.className = "total";
+    t.textContent = `TOTAL: $${total}`;
+    cont.appendChild(t);
+
+    // Espera breve y lanza impresión
+    setTimeout(() => window.print(), 500);
+  });
+</script>
+
+</body>
+</html>
+
