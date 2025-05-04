@@ -64,6 +64,7 @@
     </select>
 
     <h2>Ingredientes que NO lleva</h2>
+    <label><input type="checkbox" id="conTodo" /> Con todo</label>
     <label><input type="checkbox" class="ingrediente" value="Mayonesa" /> Mayonesa</label>
     <label><input type="checkbox" class="ingrediente" value="Catsup" /> Catsup</label>
     <label><input type="checkbox" class="ingrediente" value="Mostaza" /> Mostaza</label>
@@ -83,9 +84,17 @@
     const formulario = document.getElementById("formulario");
     const listaPedidos = document.getElementById("lista-pedidos");
     const enviarBtn = document.getElementById("enviar");
+    const conTodoCheckbox = document.getElementById("conTodo");
 
     let pedidos = [];
     let pedidoEditando = null;
+
+    conTodoCheckbox.addEventListener('change', () => {
+      document.querySelectorAll('.ingrediente').forEach(input => {
+        input.disabled = conTodoCheckbox.checked;
+        if (conTodoCheckbox.checked) input.checked = false;
+      });
+    });
 
     formulario.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -105,7 +114,7 @@
       const nuevoPedido = {
         tamano: tamano.value,
         tipo,
-        ingredientes: noIngredientes
+        ingredientes: conTodoCheckbox.checked ? [] : noIngredientes
       };
 
       if (pedidoEditando !== null) {
@@ -116,6 +125,9 @@
       }
 
       mostrarPedidos();
+      formulario.reset();
+      conTodoCheckbox.checked = false;
+      document.querySelectorAll(".ingrediente").forEach(i => i.disabled = false);
     });
 
     function mostrarPedidos() {
@@ -125,7 +137,7 @@
         div.className = "pedido";
         div.innerHTML = `
           <strong>${p.tamano} - ${p.tipo}</strong><br>
-          ❌ No lleva: ${p.ingredientes.length ? p.ingredientes.join(', ') : 'ninguno'}<br>
+          ${p.ingredientes.length ? `❌ No lleva: ${p.ingredientes.join(', ')}` : '✅ Con todo'}<br>
           <button class="btn-small" onclick="editarPedido(${i})">Editar</button>
           <button class="btn-small" onclick="eliminarPedido(${i})">Eliminar</button>
         `;
@@ -137,8 +149,10 @@
       const p = pedidos[index];
       document.querySelector(`input[name="tamano"][value="${p.tamano}"]`).checked = true;
       document.getElementById("tipo").value = p.tipo;
-      document.querySelectorAll('.ingrediente').forEach(input => {
+      conTodoCheckbox.checked = p.ingredientes.length === 0;
+      document.querySelectorAll(".ingrediente").forEach(input => {
         input.checked = !p.ingredientes.includes(input.value);
+        input.disabled = conTodoCheckbox.checked;
       });
       pedidoEditando = index;
     }
@@ -146,6 +160,25 @@
     function eliminarPedido(index) {
       pedidos.splice(index, 1);
       mostrarPedidos();
+    }
+
+    function enviarAGoogleSheets() {
+      const url = "https://script.google.com/macros/s/AKfycbyNq25EanXGUIjfvo2wpd-UigC5kJxIRpAJVyMOrufBuB2DQmamEMQ2ay_f1mLWy_Hv/exec"; // <-- Cambiar URL
+
+      fetch(url, {
+        method: "POST",
+        body: JSON.stringify({ pedidos }),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+      .then(res => res.text())
+      .then(msg => {
+        console.log("✅ Enviado a Google Sheets:", msg);
+      })
+      .catch(err => {
+        console.error("❌ Error al enviar:", err);
+      });
     }
 
     enviarBtn.addEventListener('click', () => {
@@ -157,15 +190,16 @@
       let resumen = "🧾 Pedido a cocina:\n";
       pedidos.forEach((p, i) => {
         resumen += `\n🍔 ${i + 1}. ${p.tamano} - ${p.tipo}\n`;
-        resumen += `   ❌ No lleva: ${p.ingredientes.length ? p.ingredientes.join(', ') : "ninguno"}\n`;
+        resumen += `${p.ingredientes.length ? `   ❌ No lleva: ${p.ingredientes.join(', ')}` : "   ✅ Con todo"}\n`;
       });
 
       alert(resumen);
-
-      // Reiniciar después de enviar
+      enviarAGoogleSheets();
       pedidos = [];
       mostrarPedidos();
       formulario.reset();
+      conTodoCheckbox.checked = false;
+      document.querySelectorAll(".ingrediente").forEach(i => i.disabled = false);
     });
   </script>
 </body>
