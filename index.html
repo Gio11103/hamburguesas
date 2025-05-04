@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Pedidos de Hamburguesas</title>
+  <title>Pedidos</title>
   <style>
     body {
       font-family: sans-serif;
       padding: 1rem;
-      max-width: 500px;
+      max-width: 600px;
       margin: auto;
     }
 
@@ -21,10 +21,6 @@
       margin-bottom: 0.5rem;
     }
 
-    .ingrediente {
-      margin-right: 0.5rem;
-    }
-
     .pedido {
       border: 1px solid #ccc;
       padding: 0.5rem;
@@ -34,8 +30,13 @@
 
     button {
       margin-top: 1rem;
-      padding: 0.5rem;
+      padding: 1rem;
       width: 100%;
+      font-size: 1.1rem;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 8px;
     }
 
     .btn-small {
@@ -45,32 +46,34 @@
   </style>
 </head>
 <body>
-  <h1>🍔 Tomar Pedido</h1>
+  <h1>🍔 Sistema de Pedidos</h1>
 
   <form id="formulario">
-    <h2>Tamaño</h2>
-    <label><input type="radio" name="tamano" value="125 g" /> 125 g</label>
-    <label><input type="radio" name="tamano" value="250 g" /> 250 g</label>
-
-    <h2>Tipo</h2>
-    <select id="tipo" required>
-      <option value="">-- Selecciona una --</option>
-      <option value="Tocino">Tocino</option>
-      <option value="Guacamole">Guacamole</option>
-      <option value="Queso">Queso</option>
-      <option value="Chistorra">Chistorra</option>
-      <option value="Piña">Piña</option>
-      <option value="La Tóxica">La Tóxica</option>
+    <h2>Producto</h2>
+    <select id="producto" required>
+      <option value="">-- Selecciona --</option>
+      <optgroup label="Hamburguesas">
+        <option value="Hamburguesa">Hamburguesa</option>
+      </optgroup>
+      <optgroup label="Hot Dogs">
+        <option value="Hot Dog">Hot Dog</option>
+      </optgroup>
+      <optgroup label="Papas">
+        <option value="Papas Francesas">Papas Francesas</option>
+        <option value="Papas Gajo">Papas Gajo</option>
+        <option value="Shingo Papas Francesas">Shingo Papas Francesas</option>
+        <option value="Shingo Papas Gajo">Shingo Papas Gajo</option>
+      </optgroup>
+      <optgroup label="Bebidas">
+        <option value="Refresco">Refresco</option>
+        <option value="Malteada">Malteada</option>
+        <option value="Soda Italiana">Soda Italiana</option>
+        <option value="Cerveza">Cerveza</option>
+        <option value="Michelada">Michelada</option>
+      </optgroup>
     </select>
 
-    <h2>Ingredientes que NO lleva</h2>
-    <label><input type="checkbox" id="conTodo" /> Con todo</label>
-    <label><input type="checkbox" class="ingrediente" value="Mayonesa" /> Mayonesa</label>
-    <label><input type="checkbox" class="ingrediente" value="Catsup" /> Catsup</label>
-    <label><input type="checkbox" class="ingrediente" value="Mostaza" /> Mostaza</label>
-    <label><input type="checkbox" class="ingrediente" value="Lechuga" /> Lechuga</label>
-    <label><input type="checkbox" class="ingrediente" value="Jitomate" /> Jitomate</label>
-    <label><input type="checkbox" class="ingrediente" value="Cebolla" /> Cebolla</label>
+    <div id="detalles"></div>
 
     <button type="submit">Agregar al pedido</button>
   </form>
@@ -78,128 +81,179 @@
   <h2>🧾 Pedido actual</h2>
   <div id="lista-pedidos"></div>
 
+  <h3>Total: $<span id="total">0</span></h3>
+
   <button id="enviar">Enviar a cocina</button>
 
   <script>
-    const formulario = document.getElementById("formulario");
+    const productoSelect = document.getElementById("producto");
+    const detalles = document.getElementById("detalles");
     const listaPedidos = document.getElementById("lista-pedidos");
+    const totalSpan = document.getElementById("total");
+    const formulario = document.getElementById("formulario");
     const enviarBtn = document.getElementById("enviar");
-    const conTodoCheckbox = document.getElementById("conTodo");
 
     let pedidos = [];
-    let pedidoEditando = null;
 
-    conTodoCheckbox.addEventListener('change', () => {
-      document.querySelectorAll('.ingrediente').forEach(input => {
-        input.disabled = conTodoCheckbox.checked;
-        if (conTodoCheckbox.checked) input.checked = false;
-      });
+    const precios = {
+      "Hamburguesa": { chica: 95, grande: 125, toxica: [125, 155], clasica: [65, 95] },
+      "Hot Dog": { base: 80, clasico: 65 },
+      "Papas Francesas": 45,
+      "Papas Gajo": 55,
+      "Shingo Papas Francesas": 145,
+      "Shingo Papas Gajo": 155,
+      "Refresco": 25,
+      "Malteada": 70,
+      "Soda Italiana": 50,
+      "Cerveza": 35,
+      "Michelada": 55
+    };
+
+    productoSelect.addEventListener("change", () => {
+      const prod = productoSelect.value;
+      detalles.innerHTML = "";
+
+      if (prod === "Hamburguesa" || prod === "Hot Dog") {
+        detalles.innerHTML += `
+          <h3>Tipo</h3>
+          <select id="tipo" required>
+            <option value="">-- Selecciona --</option>
+            <option value="Clásica">Clásica</option>
+            <option value="Tocino">Tocino</option>
+            <option value="Guacamole">Guacamole</option>
+            <option value="Queso">Queso</option>
+            <option value="Chistorra">Chistorra</option>
+            <option value="Piña">Piña</option>
+            <option value="La Tóxica">La Tóxica</option>
+          </select>
+        `;
+        if (prod === "Hamburguesa") {
+          detalles.innerHTML += `
+            <h3>Tamaño</h3>
+            <label><input type="radio" name="tamano" value="chica" required> Chica</label>
+            <label><input type="radio" name="tamano" value="grande"> Grande</label>
+            <h3>¿Deseas en combo?</h3>
+            <label><input type="checkbox" id="combo" /> Sí, quiero combo (+$60)</label>
+            <div id="combo-opciones" style="margin-top: 1rem; display: none;">
+              <h4>Tipo de papas</h4>
+              <label><input type="radio" name="papasCombo" value="Francesas"> Francesas</label>
+              <label><input type="radio" name="papasCombo" value="Gajo"> Gajo</label>
+            </div>
+          `;
+        }
+      } else if (prod === "Malteada") {
+        detalles.innerHTML = `
+          <h3>Sabor</h3>
+          <select id="sabor">
+            <option>Chocomenta</option><option>Mazapán</option><option>Galleta</option><option>Moka</option>
+            <option>Coco</option><option>Café</option><option>Nutella</option><option>Chicle</option>
+            <option>Vainilla</option><option>Fresa</option><option>Chocolate</option>
+          </select>
+        `;
+      } else if (prod === "Soda Italiana") {
+        detalles.innerHTML = `
+          <h3>Sabor</h3>
+          <select id="sabor">
+            <option>Mora azul</option><option>Manzana verde</option><option>Frutos rojos</option>
+          </select>
+        `;
+      } else if (prod === "Michelada") {
+        detalles.innerHTML = `
+          <h3>¿Qué lleva?</h3>
+          <label><input type="checkbox" value="Clamato" class="michelada"> Clamato</label>
+          <label><input type="checkbox" value="Salsas" class="michelada"> Salsas</label>
+          <label><input type="checkbox" value="Limón" class="michelada"> Limón</label>
+          <label><input type="checkbox" value="Escarchado con sal" class="michelada"> Escarchado con sal</label>
+          <label><input type="checkbox" value="Ajonjolí" class="michelada"> Ajonjolí</label>
+          <label><input type="checkbox" value="Tajín" class="michelada"> Tajín</label>
+        `;
+      }
     });
 
-    formulario.addEventListener('submit', (e) => {
+    detalles.addEventListener('change', (e) => {
+      if (e.target.id === 'combo') {
+        const comboOpciones = document.getElementById("combo-opciones");
+        comboOpciones.style.display = e.target.checked ? "block" : "none";
+      }
+    });
+
+    formulario.addEventListener("submit", (e) => {
       e.preventDefault();
+      const prod = productoSelect.value;
+      let item = { prod };
 
-      const tamano = document.querySelector('input[name="tamano"]:checked');
-      const tipo = document.getElementById('tipo').value;
-      const noIngredientes = [];
-      document.querySelectorAll('.ingrediente').forEach(input => {
-        if (input.checked) noIngredientes.push(input.value);
-      });
+      if (prod === "Hamburguesa" || prod === "Hot Dog") {
+        const tipo = document.getElementById("tipo").value;
+        if (!tipo) return alert("Selecciona tipo.");
+        item.tipo = tipo;
 
-      if (!tamano || !tipo) {
-        alert("Por favor selecciona tamaño y tipo.");
-        return;
+        if (prod === "Hamburguesa") {
+          const tam = document.querySelector('input[name="tamano"]:checked');
+          if (!tam) return alert("Selecciona tamaño.");
+          item.tamano = tam.value;
+
+          const combo = document.getElementById("combo").checked;
+          item.combo = combo;
+          if (combo) {
+            const papas = document.querySelector('input[name="papasCombo"]:checked');
+            if (!papas) return alert("Selecciona tipo de papas para el combo.");
+            item.papasCombo = papas.value;
+          }
+        }
+      } else if (prod === "Malteada" || prod === "Soda Italiana") {
+        item.sabor = document.getElementById("sabor").value;
+      } else if (prod === "Michelada") {
+        item.ingredientes = [];
+        document.querySelectorAll(".michelada:checked").forEach(i => item.ingredientes.push(i.value));
       }
 
-      const nuevoPedido = {
-        tamano: tamano.value,
-        tipo,
-        ingredientes: conTodoCheckbox.checked ? [] : noIngredientes
-      };
-
-      if (pedidoEditando !== null) {
-        pedidos[pedidoEditando] = nuevoPedido;
-        pedidoEditando = null;
-      } else {
-        pedidos.push(nuevoPedido);
-      }
-
+      pedidos.push(item);
       mostrarPedidos();
       formulario.reset();
-      conTodoCheckbox.checked = false;
-      document.querySelectorAll(".ingrediente").forEach(i => i.disabled = false);
+      detalles.innerHTML = "";
     });
+
+    function calcularPrecio(p) {
+      let total = 0;
+      if (p.prod === "Hamburguesa") {
+        if (p.tipo === "La Tóxica") total += precios.Hamburguesa.toxica[p.tamano === "chica" ? 0 : 1];
+        else if (p.tipo === "Clásica") total += precios.Hamburguesa.clasica[p.tamano === "chica" ? 0 : 1];
+        else total += precios.Hamburguesa[p.tamano];
+        if (p.combo) total += 60;
+      } else if (p.prod === "Hot Dog") {
+        total += p.tipo === "Clásica" ? precios["Hot Dog"].clasico : precios["Hot Dog"].base;
+      } else {
+        total += precios[p.prod];
+      }
+      return total;
+    }
 
     function mostrarPedidos() {
       listaPedidos.innerHTML = "";
+      let suma = 0;
       pedidos.forEach((p, i) => {
         const div = document.createElement("div");
+        let txt = `🔹 ${p.prod}`;
+        if (p.tipo) txt += ` - ${p.tipo}`;
+        if (p.tamano) txt += ` (${p.tamano})`;
+        if (p.combo) txt += ` 🥤🍟 En combo con papas ${p.papasCombo}`;
+        if (p.sabor) txt += ` - Sabor: ${p.sabor}`;
+        if (p.ingredientes) txt += ` - Ingredientes: ${p.ingredientes.join(", ")}`;
+        const precio = calcularPrecio(p);
+        suma += precio;
+        txt += ` — $${precio}`;
         div.className = "pedido";
-        div.innerHTML = `
-          <strong>${p.tamano} - ${p.tipo}</strong><br>
-          ${p.ingredientes.length ? `❌ No lleva: ${p.ingredientes.join(', ')}` : '✅ Con todo'}<br>
-          <button class="btn-small" onclick="editarPedido(${i})">Editar</button>
-          <button class="btn-small" onclick="eliminarPedido(${i})">Eliminar</button>
-        `;
+        div.innerHTML = txt;
         listaPedidos.appendChild(div);
       });
+      totalSpan.textContent = suma;
     }
 
-    function editarPedido(index) {
-      const p = pedidos[index];
-      document.querySelector(`input[name="tamano"][value="${p.tamano}"]`).checked = true;
-      document.getElementById("tipo").value = p.tipo;
-      conTodoCheckbox.checked = p.ingredientes.length === 0;
-      document.querySelectorAll(".ingrediente").forEach(input => {
-        input.checked = !p.ingredientes.includes(input.value);
-        input.disabled = conTodoCheckbox.checked;
-      });
-      pedidoEditando = index;
-    }
-
-    function eliminarPedido(index) {
-      pedidos.splice(index, 1);
-      mostrarPedidos();
-    }
-
-    function enviarAGoogleSheets() {
-      const url = "https://script.google.com/macros/s/AKfycbyNq25EanXGUIjfvo2wpd-UigC5kJxIRpAJVyMOrufBuB2DQmamEMQ2ay_f1mLWy_Hv/exec"; // <-- Cambiar URL
-
-      fetch(url, {
-        method: "POST",
-        body: JSON.stringify({ pedidos }),
-        headers: {
-          "Content-Type": "application/json"
-        }
-      })
-      .then(res => res.text())
-      .then(msg => {
-        console.log("✅ Enviado a Google Sheets:", msg);
-      })
-      .catch(err => {
-        console.error("❌ Error al enviar:", err);
-      });
-    }
-
-    enviarBtn.addEventListener('click', () => {
-      if (pedidos.length === 0) {
-        alert("No hay pedidos para enviar.");
-        return;
-      }
-
-      let resumen = "🧾 Pedido a cocina:\n";
-      pedidos.forEach((p, i) => {
-        resumen += `\n🍔 ${i + 1}. ${p.tamano} - ${p.tipo}\n`;
-        resumen += `${p.ingredientes.length ? `   ❌ No lleva: ${p.ingredientes.join(', ')}` : "   ✅ Con todo"}\n`;
-      });
-
-      alert(resumen);
-      enviarAGoogleSheets();
+    enviarBtn.addEventListener("click", () => {
+      if (!pedidos.length) return alert("No hay pedidos.");
+      alert("Pedido enviado a cocina.");
       pedidos = [];
       mostrarPedidos();
-      formulario.reset();
-      conTodoCheckbox.checked = false;
-      document.querySelectorAll(".ingrediente").forEach(i => i.disabled = false);
     });
   </script>
 </body>
