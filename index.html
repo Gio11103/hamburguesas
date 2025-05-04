@@ -71,6 +71,10 @@
         <option value="Cerveza">Cerveza</option>
         <option value="Michelada">Michelada</option>
       </optgroup>
+      <optgroup label="Otros">
+        <option value="Bites de Queso 6">Bites de Queso (6 piezas)</option>
+        <option value="Bites de Queso 10">Bites de Queso (10 piezas)</option>
+      </optgroup>
     </select>
 
     <div id="detalles"></div>
@@ -106,8 +110,13 @@
       "Malteada": 70,
       "Soda Italiana": 50,
       "Cerveza": 35,
-      "Michelada": 55
+      "Michelada": 55,
+      "Bites de Queso 6": 30,
+      "Bites de Queso 10": 55
     };
+
+    const ingredientesBase = ["Catsup", "Mayonesa", "Mostaza", "Lechuga", "Jitomate", "Cebolla"];
+    const ingredientesExtra = ["Queso", "Piña", "Tocino", "Guacamole", "Chistorra"];
 
     productoSelect.addEventListener("change", () => {
       const prod = productoSelect.value;
@@ -118,15 +127,24 @@
           <h3>Tipo</h3>
           <select id="tipo" required>
             <option value="">-- Selecciona --</option>
+            ${ingredientesExtra.map(i => `<option value="${i}">${i}</option>`).join("")}
             <option value="Clásica">Clásica</option>
-            <option value="Tocino">Tocino</option>
-            <option value="Guacamole">Guacamole</option>
-            <option value="Queso">Queso</option>
-            <option value="Chistorra">Chistorra</option>
-            <option value="Piña">Piña</option>
             <option value="La Tóxica">La Tóxica</option>
           </select>
+
+          <h3>Ingredientes</h3>
+          <label><input type="checkbox" id="conTodo" /> Con todo</label>
+          <div id="ingredientes">
+            ${ingredientesBase.map(i => `
+              <label><input type="checkbox" class="ingrediente" value="${i}"> ${i}</label>
+            `).join("")}
+          </div>
+
+          <h3>Extras</h3>
+          <label><input type="checkbox" id="quesoExtra" /> Queso extra (+$10)</label>
+          <label><input type="checkbox" id="ingredienteExtra" /> Ingrediente extra (+$20)</label>
         `;
+
         if (prod === "Hamburguesa") {
           detalles.innerHTML += `
             <h3>Tamaño</h3>
@@ -175,6 +193,11 @@
         const comboOpciones = document.getElementById("combo-opciones");
         comboOpciones.style.display = e.target.checked ? "block" : "none";
       }
+
+      if (e.target.id === 'conTodo') {
+        const ingredientes = document.querySelectorAll(".ingrediente");
+        ingredientes.forEach(chk => chk.checked = e.target.checked);
+      }
     });
 
     formulario.addEventListener("submit", (e) => {
@@ -186,6 +209,18 @@
         const tipo = document.getElementById("tipo").value;
         if (!tipo) return alert("Selecciona tipo.");
         item.tipo = tipo;
+
+        const ingrs = Array.from(document.querySelectorAll(".ingrediente"))
+          .filter(i => !i.checked)
+          .map(i => i.value);
+        if (document.getElementById("conTodo").checked) {
+          item.ingredientes = "con todo";
+        } else if (ingrs.length < ingredientesBase.length) {
+          item.ingredientes = `sin: ${ingrs.join(", ")}`;
+        }
+
+        item.quesoExtra = document.getElementById("quesoExtra").checked;
+        item.ingredienteExtra = document.getElementById("ingredienteExtra").checked;
 
         if (prod === "Hamburguesa") {
           const tam = document.querySelector('input[name="tamano"]:checked');
@@ -225,6 +260,8 @@
       } else {
         total += precios[p.prod];
       }
+      if (p.quesoExtra) total += 10;
+      if (p.ingredienteExtra) total += 20;
       return total;
     }
 
@@ -238,7 +275,9 @@
         if (p.tamano) txt += ` (${p.tamano})`;
         if (p.combo) txt += ` 🥤🍟 En combo con papas ${p.papasCombo}`;
         if (p.sabor) txt += ` - Sabor: ${p.sabor}`;
-        if (p.ingredientes) txt += ` - Ingredientes: ${p.ingredientes.join(", ")}`;
+        if (p.ingredientes) txt += ` - ${p.ingredientes}`;
+        if (p.quesoExtra) txt += ` + Queso extra`;
+        if (p.ingredienteExtra) txt += ` + Ingrediente extra`;
         const precio = calcularPrecio(p);
         suma += precio;
         txt += ` — $${precio}`;
