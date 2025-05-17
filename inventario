@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Inventario</title>
+  <script>
+    const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzoSeeTKvgIni-xjMQ_-HZP-Oot5nHPzk_mnFY0ZqSbiViRZiFwLnr-dmseLhW2QKwk/exec';
+    const PASSWORD = 'admin123';
+
+    async function verificarPassword() {
+      const input = document.getElementById('password').value;
+      if (input === PASSWORD) {
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('inventario').style.display = 'block';
+        await cargarInventario();
+      } else {
+        alert('Contraseña incorrecta');
+      }
+    }
+
+    async function cargarInventario() {
+      const response = await fetch(SHEET_URL);
+      const data = await response.json();
+      const tabla = document.getElementById('tablaInventario');
+      tabla.innerHTML = '';
+
+      data.forEach(row => {
+        const fila = document.createElement('tr');
+        fila.innerHTML = `<td>${row.item}</td><td>${row.cantidad}</td>`;
+        tabla.appendChild(fila);
+      });
+    }
+
+    async function agregarItem() {
+      const item = document.getElementById('nuevoItem').value;
+      const cantidad = document.getElementById('nuevaCantidad').value;
+      const url = `${SHEET_URL}?action=add&item=${item}&cantidad=${cantidad}`;
+      await fetch(url);
+      await cargarInventario();
+    }
+  </script>
+</head>
+<body>
+  <div id="login">
+    <h2>Acceso al Inventario</h2>
+    <input type="password" id="password" placeholder="Contraseña" />
+    <button onclick="verificarPassword()">Entrar</button>
+  </div>
+
+  <div id="inventario" style="display:none;">
+    <h2>Inventario</h2>
+    <table border="1">
+      <thead><tr><th>Item</th><th>Cantidad</th></tr></thead>
+      <tbody id="tablaInventario"></tbody>
+    </table>
+    <h3>Agregar nuevo insumo</h3>
+    <input id="nuevoItem" placeholder="Nombre" />
+    <input id="nuevaCantidad" placeholder="Cantidad" />
+    <button onclick="agregarItem()">Agregar</button>
+  </div>
+</body>
+</html>
